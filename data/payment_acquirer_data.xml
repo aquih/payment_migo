@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="payment_acquirer_migo" model="payment.acquirer">
+            <field name="name">Migo</field>
+            <field name="view_template_id" ref="migo_form"/>
+            <field name="provider">migo</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="image_128" type="base64" file="payment_migo/static/src/img/migo_icon.gif"/>
+            <field name="pre_msg"><![CDATA[<p>Será redireccionado al sitio de Migo para que ingrese sus datos luego de apachar el botón de "Pagar ahora".</p>]]></field>
+            <field name="description" type="html">
+                <p>
+                    Pagos con Migo.
+                </p>
+                <ul class="list-inline">
+                    <li class="list-inline-item"><i class="fa fa-check"/>Online Payment</li>
+                </ul>
+            </field>
+            <field name="payment_icon_ids" eval='[(6, 0, [ref("payment.payment_icon_cc_mastercard"), ref("payment.payment_icon_cc_visa")])]'/>
+            <field name="migo_public_key">dummy</field>
+            <field name="migo_private_key">dummy</field>
+            <field name="migo_client">dummy</field>
+        </record>    
+
+    </data>
+</odoo>
