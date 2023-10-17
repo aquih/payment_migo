@@ -104,7 +104,7 @@ class TxMigo(models.Model):
         invalid_parameters = []
         status_code = data.get('status', 'denied')
                     
-        if status_code == 'accept':
+        if status_code == 'approved':
             if float_compare(float(data.get('amount', '0.0')), self.amount, 2) != 0:
                 invalid_parameters.append(('amount', data.get('amount'), '%.2f' % self.amount))
                 
@@ -115,7 +115,7 @@ class TxMigo(models.Model):
         vals = {
             "acquirer_reference": data.get('uid'),
         }
-        if status_code == 'accept':
+        if status_code == 'approved':
             if version_info[0] > 11:
                 self.write(vals)
                 self._set_transaction_done()
