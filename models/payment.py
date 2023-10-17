@@ -27,18 +27,16 @@ class AcquirerMigo(models.Model):
     migo_client = fields.Char('Client', required_if_provider='migo', groups='base.group_user')
 
     def migo_form_generate_values(self, values):
-        session_id = request.session.sid
         token = hashlib.sha256('{}:{}'.format(self.migo_private_key, self.migo_public_key).encode('utf-8')).hexdigest()
         _logger.warning(token)
 
         data = {
             'amount': values['amount'],
             'userId': values['reference'],
-            'channel': 'wa',
+            'channel': 'web',
             'client': self.migo_client,
             'createdBy': 'MigoTest',
             'ads': [],
-            'customKeys': { 'session_id': session_id }
         }
         _logger.warning(data)
         
@@ -52,6 +50,10 @@ class AcquirerMigo(models.Model):
             'return_url': urllib.parse.urljoin(base_url, MigoController._return_url),
             'migo_order_id': resultado['uid'],
         })
+
+        tx = self.env['payment.transaction'].sudo().search([('reference', '=', values['reference'])])
+        tx.migo_uid = resultado['uid']
+        
         return migo_tx_values
 
     def migo_get_form_action_url(self):
@@ -64,19 +66,21 @@ class AcquirerMigo(models.Model):
 class TxMigo(models.Model):
     _inherit = 'payment.transaction'
 
+    migo_uid = fields.Char(string='Migo UID')
+
     @api.model
     def _migo_form_get_tx_from_data(self, data):
         """
         Given a data dict coming from migo, verify it and find the related
         transaction record.
         """
-        reference = data.get('req_reference_number')
+        reference = data.get('uid')
         if not reference:
             error_msg = _('Migo: received data with missing reference (%s)') % (reference)
             _logger.info(error_msg)
             raise ValidationError(error_msg)
 
-        tx = self.search([('reference', '=', reference)])
+        tx = self.search([('migo_uid', '=', reference)])
         _logger.info(tx)
 
         if version_info[0] == 11:
@@ -98,20 +102,20 @@ class TxMigo(models.Model):
 
     def _migo_form_get_invalid_parameters(self, data):
         invalid_parameters = []
-        status_code = data.get('decision', 'ERROR')
+        status_code = data.get('status', 'denied')
                     
-        if status_code == 'ACCEPT':
-            if float_compare(float(data.get('auth_amount', '0.0')), self.amount, 2) != 0:
-                invalid_parameters.append(('auth_amount', data.get('auth_amount'), '%.2f' % self.amount))
+        if status_code == 'accept':
+            if float_compare(float(data.get('amount', '0.0')), self.amount, 2) != 0:
+                invalid_parameters.append(('amount', data.get('amount'), '%.2f' % self.amount))
                 
         return invalid_parameters
 
     def _migo_form_validate(self, data):
-        status_code = data.get('decision', 'ERROR')
+        status_code = data.get('status', 'denied')
         vals = {
-            "acquirer_reference": data.get('transaction_id'),
+            "acquirer_reference": data.get('uid'),
         }
-        if status_code == 'ACCEPT':
+        if status_code == 'accept':
             if version_info[0] > 11:
                 self.write(vals)
                 self._set_transaction_done()
@@ -121,7 +125,7 @@ class TxMigo(models.Model):
                 self.write(vals)
             return True
         else:
-            error = 'Migo: error '+data.get('message')
+            error = 'Migo: error '+status_code
             _logger.info(error)
             if version_info[0] > 11:
                 self.write(vals)
