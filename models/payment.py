@@ -22,25 +22,29 @@ class AcquirerMigo(models.Model):
     _inherit = 'payment.acquirer'
 
     provider = fields.Selection(selection_add=[('migo', 'Migo')], ondelete={'migo': 'set default'})
-    migo_public_key = fields.Char('Public Key', required_if_provider='migo', groups='base.group_user')
-    migo_private_key = fields.Char('Private Key', required_if_provider='migo', groups='base.group_user')
+    #migo_public_key = fields.Char('Public Key', required_if_provider='migo', groups='base.group_user')
+    #migo_private_key = fields.Char('Private Key', required_if_provider='migo', groups='base.group_user')
+    migo_token = fields.Char('Token', required_if_provider='migo', groups='base.group_user')
     migo_client = fields.Char('Client', required_if_provider='migo', groups='base.group_user')
 
     def migo_form_generate_values(self, values):
-        token = hashlib.sha256('{}:{}'.format(self.migo_private_key, self.migo_public_key).encode('utf-8')).hexdigest()
-        _logger.warning(token)
+        #token = hashlib.sha256('{}:{}'.format(self.migo_private_key, self.migo_public_key).encode('utf-8')).hexdigest()
 
         data = {
             'amount': values['amount'],
             'userId': values['reference'],
             'channel': 'web',
             'client': self.migo_client,
-            'createdBy': 'MigoTest',
+            'createdBy': 'Odoo',
             'ads': [],
         }
         _logger.warning(data)
+
+        uid_url = 'https://sb-mw.migopayments.com/transactions'
+        if ( 'environment' in self.fields_get() and self.environment == 'prod' ) or ( 'state' in self.fields_get() and self.state == 'enabled' ):
+            return "https://mw.migopayments.com/transactions"
         
-        r = requests.post('https://sb-mw.migopayments.com/transactions', json=data, headers={'Authorization': token})
+        r = requests.post(uid_url, json=data, headers={'Authorization': token})
         resultado = r.json()
         _logger.warning(resultado)
         
@@ -59,7 +63,7 @@ class AcquirerMigo(models.Model):
     def migo_get_form_action_url(self):
         self.ensure_one()
         if ( 'environment' in self.fields_get() and self.environment == 'prod' ) or ( 'state' in self.fields_get() and self.state == 'enabled' ):
-            return "https://sandbox.migopayments.com/"
+            return "https://web.migopayments.com/"
         else:
             return "https://sandbox.migopayments.com/"
 
