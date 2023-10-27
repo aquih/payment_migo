@@ -42,9 +42,9 @@ class AcquirerMigo(models.Model):
 
         uid_url = 'https://sb-mw.migopayments.com/transactions'
         if ( 'environment' in self.fields_get() and self.environment == 'prod' ) or ( 'state' in self.fields_get() and self.state == 'enabled' ):
-            return "https://mw.migopayments.com/transactions"
+            uid_url = 'https://mw.migopayments.com/transactions'
         
-        r = requests.post(uid_url, json=data, headers={'Authorization': token})
+        r = requests.post(uid_url, json=data, headers={'Authorization': self.migo_token})
         resultado = r.json()
         _logger.warning(resultado)
         
