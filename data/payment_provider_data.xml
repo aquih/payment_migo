@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="payment_provider_migo" model="payment.provider">
+        <field name="name">Migo</field>
+        <field name="image_128"
+               type="base64"
+               file="payment_migo/static/src/img/migo_icon.gif"/>
+        <field name="module_id" ref="base.module_payment_migo"/>
+        <field name="payment_method_ids"
+               eval="[(6, 0, [
+                   ref('payment.payment_method_mastercard'),
+                   ref('payment.payment_method_visa'),
+               ])]"/>
+        <field name="code">migo</field>
+        <field name="redirect_form_view_id" ref="redirect_form"/>
+    </record>
+
+</odoo>

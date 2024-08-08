@@ -11,13 +11,18 @@ from odoo.http import request
 _logger = logging.getLogger(__name__)
 
 class MigoController(http.Controller):
-    _return_url = '/payment/migopayments/return'
+    _return_url = '/payment/migo/return'
 
-    @http.route(['/payment/migopayments/return'], type='http', auth='public', csrf=False, save_session=False)
+    @http.route(['/payment/migo/return'], type='http', auth='public', csrf=False, save_session=False)
     def migo_return(self, **data):
-        """ Migo """
-        if data:
-            _logger.info('Migo: entering form_feedback with post data %s', pprint.pformat(data))  # debug
-            request.env['payment.transaction'].sudo().form_feedback(post, 'data')
+        """ Process the data returned by Migo after redirection.
 
-        return request.redirect("/payment/process")
+        :param dict data: The feedback data
+        """
+        if data:
+            _logger.info('Migo: entering _handle_feedback_data with post data %s', pprint.pformat(data))  # debug
+            request.env['payment.transaction'].sudo()._handle_feedback_data('migo', data)
+            tx_sudo = request.env['payment.transaction'].sudo()._get_tx_from_notification_data('migo', data)
+            tx_sudo._handle_notification_data('migo', data)
+
+        return request.redirect('/payment/status')
