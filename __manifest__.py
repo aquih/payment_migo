@@ -4,7 +4,7 @@
     'name': 'Migo Payment Acquirer',
     'category': 'Accounting/Payment Acquirers',
     'summary': 'Payment Acquirer: Migo Implementation',
-    'version': '2.0',
+    'version': '2.1',
     'description': """Migo Payment Acquirer""",
     'author': 'aquíH',
     'website': 'http://aquih.com/',

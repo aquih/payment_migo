@@ -1,20 +1,16 @@
 # coding: utf-8
 import logging
-import hmac
-import hashlib
-import base64
-import uuid
 
 from werkzeug import urls
 
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
-from odoo.addons.payment_visanet.controllers.payment import VisaNetController
+from odoo.addons.payment_migo.controllers.payment import MigoController
+
+import requests
 
 _logger = logging.getLogger(__name__)
-
-signed_field_names = ['access_key', 'profile_id', 'transaction_uuid', 'signed_field_names', 'unsigned_field_names', 'signed_date_time', 'locale', 'transaction_type', 'reference_number', 'amount', 'currency']
 
 class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
@@ -81,15 +77,15 @@ class PaymentTransaction(models.Model):
 
     def _process_notification_data(self, notification_data):
         super()._process_notification_data(notification_data)
-        if self.provider != 'migo':
+        if self.provider_code != 'migo':
             return
 
+        self.provider_reference = notification_data.get('uid')
+
         status_code = notification_data.get('status', 'denied')
-        vals = {
-            "acquirer_reference": data.get('uid'),
-        }
         if status_code == 'approved':
             self._set_done()
         else:
             error = 'Migo: error '+status_code
+            _logger.info(error)
             self._set_error(_("Your payment was refused (code %s). Please try again.", status_code))
