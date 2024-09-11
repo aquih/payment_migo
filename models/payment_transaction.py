@@ -31,7 +31,7 @@ class PaymentTransaction(models.Model):
         _logger.warning(data)
 
         uid_url = 'https://sb-mw.migopayments.com/transactions'
-        if ( self.acquirer_id.state == 'enabled' ):
+        if ( self.provider_id.state == 'enabled' ):
             uid_url = 'https://mw.migopayments.com/transactions'
         
         r = requests.post(uid_url, json=data, headers={'Authorization': self.migo_token})

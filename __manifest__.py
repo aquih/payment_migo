@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 {
-    'name': 'Migo Payment Acquirer',
-    'category': 'Accounting/Payment Acquirers',
-    'summary': 'Payment Acquirer: Migo Implementation',
+    'name': 'Migo Payment Provider',
+    'category': 'Accounting/Payment Providers',
+    'summary': 'Payment Provider: Migo Implementation',
     'version': '2.1',
-    'description': """Migo Payment Acquirer""",
+    'description': """Migo Payment Provider""",
     'author': 'aquíH',
     'website': 'http://aquih.com/',
     'depends': ['payment'],
