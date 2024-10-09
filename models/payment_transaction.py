@@ -82,6 +82,11 @@ class PaymentTransaction(models.Model):
 
         self.provider_reference = notification_data.get('uid')
 
+        payment_method = self.env['payment.method']._get_from_code(
+            'migo'
+        )
+        self.payment_method_id = payment_method or self.payment_method_id
+
         status_code = notification_data.get('status', 'denied')
         if status_code == 'approved':
             self._set_done()
