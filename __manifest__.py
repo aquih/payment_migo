@@ -4,7 +4,7 @@
     'name': 'Migo Payment Provider',
     'category': 'Accounting/Payment Providers',
     'summary': 'Payment Provider: Migo Implementation',
-    'version': '2.1',
+    'version': '2.2',
     'description': """Migo Payment Provider""",
     'author': 'aquíH',
     'website': 'http://aquih.com/',
