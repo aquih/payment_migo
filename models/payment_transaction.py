@@ -14,17 +14,24 @@ _logger = logging.getLogger(__name__)
 
 class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
+
+    def _migo_get_api_url(self):
+        self.ensure_one()
+        if self.state == 'enabled':
+            return 'https://web.migopayments.com/'
+        else:
+            return 'https://sandbox.migopayments.com/'
     
     def _get_specific_rendering_values(self, processing_values):
         res = super()._get_specific_rendering_values(processing_values)
-        if processing_values['provider_code'] != 'visanet':
+        if processing_values['provider_code'] != 'migo':
             return res
         
         data = {
-            'amount': values['amount'],
-            'userId': values['reference'],
+            'amount': processing_values['amount'],
+            'userId': processing_values['reference'],
             'channel': 'web',
-            'client': self.migo_client,
+            'client': self.provider_id.migo_client,
             'createdBy': 'Odoo',
             'ads': [],
         }
@@ -34,13 +41,13 @@ class PaymentTransaction(models.Model):
         if ( self.provider_id.state == 'enabled' ):
             uid_url = 'https://mw.migopayments.com/transactions'
         
-        r = requests.post(uid_url, json=data, headers={'Authorization': self.migo_token})
+        r = requests.post(uid_url, json=data, headers={'Authorization': self.provider_id.migo_token})
         resultado = r.json()
         _logger.warning(resultado)
         
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         rendering_values = {
-            'return_url': urllib.parse.urljoin(base_url, MigoController._return_url),
+            'api_url': self._migo_get_api_url(),
             'migo_order_id': resultado['uid'],
         }
 
