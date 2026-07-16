@@ -15,13 +15,8 @@ _logger = logging.getLogger(__name__)
 class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
 
-    def _migo_get_api_url(self):
-        self.ensure_one()
-        if self.state == 'enabled':
-            return 'https://web.migopayments.com/'
-        else:
-            return 'https://sandbox.migopayments.com/'
-    
+    migo_uid = fields.Char(string='Migo UID')
+
     def _get_specific_rendering_values(self, processing_values):
         res = super()._get_specific_rendering_values(processing_values)
         if processing_values['provider_code'] != 'migo':
@@ -47,11 +42,11 @@ class PaymentTransaction(models.Model):
         
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         rendering_values = {
-            'api_url': self._migo_get_api_url(),
+            'api_url': resultado['URL'],
             'migo_order_id': resultado['uid'],
         }
 
-        tx = self.env['payment.transaction'].sudo().search([('reference', '=', values['reference'])])
+        tx = self.env['payment.transaction'].sudo().search([('reference', '=', processing_values['reference'])])
         tx.migo_uid = resultado['uid']
         
         return rendering_values
