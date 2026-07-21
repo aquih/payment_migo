@@ -16,6 +16,13 @@ class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
 
     migo_uid = fields.Char(string='Migo UID')
+    
+    def _migo_get_api_url(self):
+        self.ensure_one()
+        if self.provider_id.state == 'enabled':
+            return 'https://web.migopayments.com/'
+        else:
+            return 'https://sandbox.migopayments.com/'
 
     def _get_specific_rendering_values(self, processing_values):
         res = super()._get_specific_rendering_values(processing_values)
@@ -33,16 +40,15 @@ class PaymentTransaction(models.Model):
         _logger.warning(data)
 
         uid_url = 'https://sb-mw.migopayments.com/transactions'
-        if ( self.provider_id.state == 'enabled' ):
+        if self.provider_id.state == 'enabled':
             uid_url = 'https://mw.migopayments.com/transactions'
         
         r = requests.post(uid_url, json=data, headers={'Authorization': self.provider_id.migo_token})
         resultado = r.json()
         _logger.warning(resultado)
         
-        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         rendering_values = {
-            'api_url': resultado['URL'],
+            'api_url': self._migo_get_api_url(),
             'migo_order_id': resultado['uid'],
         }
 
